@@ -1,27 +1,42 @@
-import React from "react";
+import React, { useState } from 'react'
+import CreateTask from './createtask.jsx'
 
 const DashboardContent = () => {
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
+
   const stats = [
-    { title: "Total Client", value: "60%", bgColor: "bg-blue-100" },
-    { title: "Total Project", value: "20%", bgColor: "bg-blue-100" },
-    { title: "Total Task", value: "40%", bgColor: "bg-blue-100" },
-  ];
+    { title: 'Total Client', value: '60%', bgColor: 'bg-blue-100' },
+    { title: 'Total Project', value: '20%', bgColor: 'bg-blue-100' },
+    { title: 'Total Task', value: '40%', bgColor: 'bg-blue-100' }
+  ]
 
   const tasks = [
-    { name: "Testing", assignedTo: "Nira Rajendranye", progress: 75 },
-    { name: "Backend", assignedTo: "Pritam Shrestha", progress: 60 },
-    { name: "Front end", assignedTo: "Aasish Rai", progress: 85 },
-  ];
+    { name: 'Testing', assignedTo: 'Nira Rajendranye', progress: 75 },
+    { name: 'Backend', assignedTo: 'Pritam Shrestha', progress: 60 },
+    { name: 'Front end', assignedTo: 'Aasish Rai', progress: 85 }
+  ]
 
   return (
     <div className="p-6 space-y-6">
+      {/* Create Task Button */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+        <button
+          onClick={() => setIsCreateTaskOpen(true)}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center space-x-2 shadow-md"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Create Task</span>
+        </button>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
           <div key={index} className={`${stat.bgColor} p-6 rounded-lg`}>
-            <h3 className="text-gray-600 text-sm font-medium mb-2">
-              {stat.title}
-            </h3>
+            <h3 className="text-gray-600 text-sm font-medium mb-2">{stat.title}</h3>
             <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
           </div>
         ))}
@@ -39,23 +54,18 @@ const DashboardContent = () => {
           </thead>
           <tbody className="space-y-3">
             {tasks.map((task, index) => (
-              <tr
-                key={index}
-                className="border-b border-blue-200 last:border-b-0"
-              >
+              <tr key={index} className="border-b border-blue-200 last:border-b-0">
                 <td className="py-3 text-gray-800">{task.name}</td>
                 <td className="py-3 text-gray-800">{task.assignedTo}</td>
                 <td className="py-3">
                   <div className="flex items-center space-x-3">
                     <div className="flex-1 bg-blue-200 rounded-full h-2">
-                      <div
+                      <div 
                         className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${task.progress}%` }}
                       ></div>
                     </div>
-                    <span className="text-sm text-gray-600 min-w-[3rem]">
-                      {task.progress}%
-                    </span>
+                    <span className="text-sm text-gray-600 min-w-[3rem]">{task.progress}%</span>
                   </div>
                 </td>
               </tr>
@@ -70,15 +80,11 @@ const DashboardContent = () => {
           <h3 className="text-lg font-semibold text-gray-800">Overdue Tasks</h3>
           <button className="text-blue-600 hover:text-blue-800">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                clipRule="evenodd"
-              />
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>
           </button>
         </div>
-
+        
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -101,27 +107,24 @@ const DashboardContent = () => {
                 <td className="py-2 text-gray-800">2025-01-15</td>
                 <td className="py-2 text-red-600">-2</td>
                 <td className="py-2">
-                  <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
-                    High
-                  </span>
+                  <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">High</span>
                 </td>
                 <td className="py-2">
-                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
-                    Pending
-                  </span>
+                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Pending</span>
                 </td>
                 <td className="py-2">
-                  <button className="text-blue-600 hover:text-blue-800 text-xs">
-                    View
-                  </button>
+                  <button className="text-blue-600 hover:text-blue-800 text-xs">View</button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
+      
+      {/* Create Task Modal */}
+      <CreateTask isOpen={isCreateTaskOpen} onClose={() => setIsCreateTaskOpen(false)} />
     </div>
-  );
-};
+  )
+}
 
-export default DashboardContent;
+export default DashboardContent
