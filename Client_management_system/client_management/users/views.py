@@ -8,6 +8,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import MyTokenObtainPairSerializer
 from .permissions import IsAdminOrManager
 from .serializers import (
     UserSerializer,
@@ -27,6 +29,7 @@ class ProfileView(APIView):
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "role": user.role,
             "avatar": user.avatar.url if user.avatar else None,
         })
 
@@ -106,3 +109,8 @@ class PasswordResetConfirmAPIView(APIView):
         user.save()
 
         return Response({"message": "Password reset successful"})
+    
+
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
