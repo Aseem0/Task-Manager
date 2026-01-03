@@ -1,7 +1,24 @@
 import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 
 const ManagerLayout = () => {
+  const location = useLocation();
+
+  const pageTitles = {
+    dashboard: "Manager Dashboard",
+    analytics: "Manager Analytics",
+    project: "Manager Projects",
+    tasks: "Manager Tasks",
+    employees: "Manager Employees",
+    settings: "Manager Settings",
+  };
+
+  // get last part of the URL
+  const currentPath = location.pathname.split("/").pop();
+
+  // fallback title
+  const pageTitle = pageTitles[currentPath] || "Manager Dashboard";
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
@@ -35,6 +52,54 @@ const ManagerLayout = () => {
           >
             Analytics
           </NavLink>
+          <NavLink
+            to="project"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Project
+          </NavLink>
+          <NavLink
+            to="tasks"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Tasks
+          </NavLink>
+          <NavLink
+            to="employees"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Employees
+          </NavLink>
+          <NavLink
+            to="settings"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Settings
+          </NavLink>
         </nav>
       </div>
 
@@ -43,7 +108,7 @@ const ManagerLayout = () => {
         {/* Header */}
         <header className="bg-slate-800 text-white p-4 flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-semibold">Manager Dashboard</h2>
+            <h2 className="text-lg font-semibold">{pageTitle}</h2>
           </div>
 
           <div className="flex items-center space-x-4">
