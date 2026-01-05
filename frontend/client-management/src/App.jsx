@@ -12,6 +12,8 @@ import ManagerProject from "./Components/managerproject";
 import ManagerTasks from "./Components/managertasks";
 import ManagerEmployees from "./Components/manageremployees";
 import ManagerSettings from "./Components/managersettings";
+import EmployeeLayout from "./Components/employeelayout";
+import EmployeeDashboard from "./Components/employeeDashboard";
 
 function App() {
   return (
@@ -29,6 +31,11 @@ function App() {
           <Route path="tasks" element={<ManagerTasks />} />
           <Route path="employees" element={<ManagerEmployees />} />
           <Route path="settings" element={<ManagerSettings />} />
+        </Route>
+        {/* EMPLOYEE ROUTES */}
+        <Route path="/employee" element={<EmployeeLayout />}>
+          <Route index element={<EmployeeDashboard />} />
+          <Route path="dashboard" element={<EmployeeDashboard />} />
         </Route>
       </Routes>
     </>
