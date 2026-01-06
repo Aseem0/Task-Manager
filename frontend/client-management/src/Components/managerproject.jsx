@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Search, Plus, Edit2, Trash2, X } from "lucide-react";
 
-// API Base URL - Change this to your backend URL
+// API Base URL
 const API_BASE_URL = "http://127.0.0.1:8000/api/tasks";
 
 // Helper function to get auth token
 const getAuthToken = () => {
-  return localStorage.getItem("accessToken"); // Matches your login code
+  return localStorage.getItem("accessToken");
 };
 
 // Helper function to refresh token
@@ -84,7 +84,7 @@ const TaskGroupModal = ({
   onClose,
   onSubmit,
   editGroup = null,
-  employees,
+  employees = [],
 }) => {
   const [formData, setFormData] = useState({
     name: editGroup?.name || "",
@@ -120,8 +120,11 @@ const TaskGroupModal = ({
 
   if (!isOpen) return null;
 
+  // Ensure employees is an array
+  const employeeList = Array.isArray(employees) ? employees : [];
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0  flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">
@@ -153,11 +156,11 @@ const TaskGroupModal = ({
 
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Assign Members
+              Assign Members (Employees only)
             </label>
             <div className="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto">
-              {employees.length > 0 ? (
-                employees.map((employee) => (
+              {employeeList.length > 0 ? (
+                employeeList.map((employee) => (
                   <label
                     key={employee.id}
                     className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
@@ -168,21 +171,30 @@ const TaskGroupModal = ({
                       onChange={() => toggleMember(employee.id)}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
-                    <span className="text-gray-700">
-                      {employee.username ||
-                        employee.email ||
-                        `User ${employee.id}`}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-gray-700 font-medium">
+                        {employee.username ||
+                          employee.email ||
+                          employee.first_name ||
+                          `User ${employee.id}`}
+                      </span>
+                      {employee.email && (
+                        <span className="text-xs text-gray-500">
+                          {employee.email}
+                        </span>
+                      )}
+                    </div>
                   </label>
                 ))
               ) : (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  No employees available
+                  No employees available. Make sure users with role 'employee'
+                  exist in your database.
                 </p>
               )}
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              {formData.members.length} member(s) selected
+              {formData.members.length} employee(s) selected
             </p>
           </div>
 
@@ -207,24 +219,63 @@ const TaskGroupModal = ({
 };
 
 // Task Group Card Component
-const TaskGroupCard = ({ group, onEdit, onDelete, employees }) => {
-  const getMemberNames = (memberIds) => {
+const TaskGroupCard = ({
+  group,
+  onEdit,
+  onDelete,
+  employees = [],
+  currentUser,
+}) => {
+  const getMemberDetails = (memberIds) => {
     if (!memberIds || memberIds.length === 0) return [];
 
+    // Ensure employees is an array
+    const employeeList = Array.isArray(employees) ? employees : [];
+
     return memberIds.map((memberId) => {
-      const employee = employees.find((e) => e.id === memberId);
+      const employee = employeeList.find((e) => e.id === memberId);
+      if (employee) {
+        return {
+          id: employee.id,
+          name:
+            employee.username ||
+            employee.email ||
+            employee.first_name ||
+            `User ${employee.id}`,
+          email: employee.email,
+        };
+      }
       return {
         id: memberId,
-        name: employee
-          ? employee.username || employee.email || `User ${memberId}`
-          : `User ${memberId}`,
+        name: `User ${memberId}`,
+        email: "",
       };
     });
   };
 
-  const members = getMemberNames(group.members);
-  const createdBy =
-    group.created_by?.username || group.created_by?.email || "Unknown";
+  const members = getMemberDetails(group.members);
+
+  // Handle created_by - it could be an ID or an object
+  let createdByName = "Unknown";
+
+  if (group.created_by) {
+    // created_by is populated object
+    if (typeof group.created_by === "object") {
+      createdByName =
+        group.created_by.username || group.created_by.email || "Unknown";
+    }
+    // created_by is an ID
+    else {
+      if (group.created_by === currentUser?.id) {
+        createdByName = currentUser.username || currentUser.email || "Unknown";
+      } else {
+        const creator = employees.find((e) => e.id === group.created_by);
+        if (creator) {
+          createdByName = creator.username || creator.email || "Unknown";
+        }
+      }
+    }
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -232,7 +283,7 @@ const TaskGroupCard = ({ group, onEdit, onDelete, employees }) => {
         <div>
           <h3 className="text-lg font-bold text-gray-800 mb-1">{group.name}</h3>
           <p className="text-sm text-gray-500">
-            Created by: <span className="font-medium">{createdBy}</span>
+            Created by: <span className="font-medium">{createdByName}</span>
           </p>
           <p className="text-xs text-gray-400">
             {new Date(group.created_at).toLocaleDateString()}
@@ -263,12 +314,13 @@ const TaskGroupCard = ({ group, onEdit, onDelete, employees }) => {
         {members.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {members.map((member) => (
-              <span
+              <div
                 key={member.id}
                 className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                title={member.email}
               >
                 {member.name}
-              </span>
+              </div>
             ))}
           </div>
         ) : (
@@ -288,23 +340,34 @@ const ManagerTaskGroups = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Fetch employees (role='employee')
   const fetchEmployees = async () => {
     try {
+      console.log("🔍 Fetching employees from API...");
       const response = await fetchWithAuth(
-        "http://127.0.0.1:8000/api/users/employees/"
+        "http://127.0.0.1:8000/api/clients/employees/"
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        setEmployees(data);
+      if (!response.ok) {
+        console.error("❌ Failed to fetch employees");
+        setEmployees([]);
+        return;
+      }
+
+      const data = await response.json();
+
+      console.log("✅ Employee API response:", data);
+
+      // IMPORTANT FIX HERE
+      if (Array.isArray(data.employees)) {
+        setEmployees(data.employees);
       } else {
-        console.error("Failed to fetch employees");
         setEmployees([]);
       }
     } catch (error) {
-      console.error("Error fetching employees:", error);
+      console.error("💥 Error fetching employees:", error);
       setEmployees([]);
     }
   };
@@ -415,6 +478,20 @@ const ManagerTaskGroups = () => {
     }
   };
 
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await fetchWithAuth(
+        "http://127.0.0.1:8000/api/users/profile/"
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUser(data);
+      }
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+    }
+  };
+
   const openEditModal = (group) => {
     setEditingGroup(group);
     setIsModalOpen(true);
@@ -429,6 +506,7 @@ const ManagerTaskGroups = () => {
   useEffect(() => {
     fetchEmployees();
     fetchTaskGroups();
+    fetchCurrentUser();
   }, []);
 
   const filteredGroups = taskGroups.filter((group) => {
@@ -501,6 +579,7 @@ const ManagerTaskGroups = () => {
                 onEdit={openEditModal}
                 onDelete={handleDeleteGroup}
                 employees={employees}
+                currentUser={currentUser}
               />
             ))}
           </div>
