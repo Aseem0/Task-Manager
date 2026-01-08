@@ -2,6 +2,10 @@ import React, {useState} from 'react'
 import AdminLayout from '../Components/adminlayout.jsx'
 import DashboardContent from '../Components/admindashboard.jsx'
 import AnalyticsContent from '../Components/adminanalytics.jsx'
+import AdminProjectsContent from '../Components/adminprojects.jsx'
+import AdminTasksContent from '../Components/admintasks.jsx'
+import AdminClientContent from '../Components/adminclients.jsx'
+import AdminSettingsContent from '../Components/adminsettings.jsx'
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('Dashboard')
@@ -10,10 +14,10 @@ const Admin = () => {
     switch (activeTab) {
       case 'Dashboard': return <DashboardContent />
       case 'Analytics': return <AnalyticsContent />
-      case 'Projects': return <div>ProjectsContent</div>
-      case 'Tasks': return <div>TasksContent</div>
-      case 'Clients': return <div>ClientsContent</div>
-      case 'Settings': return <div>SettingsContent</div>
+      case 'Projects': return <AdminProjectsContent />
+      case 'Tasks': return <AdminTasksContent />
+      case 'Clients': return <AdminClientContent />
+      case 'Settings': return <AdminSettingsContent />
       default: return <DashboardContent />
     }
   }
