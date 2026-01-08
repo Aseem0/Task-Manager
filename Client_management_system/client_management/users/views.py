@@ -33,6 +33,22 @@ class ProfileView(APIView):
             "avatar": user.avatar.url if user.avatar else None,
         })
 
+    def put(self, request):
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "message": "Profile updated successfully",
+                "user": {
+                    "id": user.id,
+                    "username": serializer.data.get('username', user.username),
+                    "email": serializer.data.get('email', user.email),
+                    "role": user.role,
+                }
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -114,3 +130,61 @@ class PasswordResetConfirmAPIView(APIView):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
+
+class EmployeeListView(APIView):
+    """
+    API endpoint to list all employees.
+    Only accessible by authenticated managers and admins.
+    """
+    permission_classes = [IsAuthenticated, IsAdminOrManager]
+
+    def get(self, request):
+        # Get all users (optionally filter by role if needed)
+        users = User.objects.all().order_by('-date_joined')
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+
+
+class EmployeeDetailView(APIView):
+    """
+    API endpoint to retrieve, update, or delete a specific employee.
+    Only accessible by authenticated managers and admins.
+    """
+    permission_classes = [IsAuthenticated, IsAdminOrManager]
+
+    def get_object(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        user = self.get_object(pk)
+        if not user:
+            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        user = self.get_object(pk)
+        if not user:
+            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User updated successfully", "user": serializer.data})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        user = self.get_object(pk)
+        if not user:
+            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Prevent deleting yourself
+        if user.id == request.user.id:
+            return Response({"detail": "You cannot delete your own account"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+

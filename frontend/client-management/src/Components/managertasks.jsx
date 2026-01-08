@@ -492,36 +492,28 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, employees, taskGroups }) => {
 const TaskRow = ({ task, onEdit, onDelete, employees, taskGroups }) => {
   // Get assigned employees names
   const getAssignedNames = () => {
-    if (!Array.isArray(task.assigned_to) || task.assigned_to.length === 0) {
+    if (!task.assigned_to || task.assigned_to.length === 0)
       return "Not assigned";
-    }
 
-    const employeeMap = new Map((employees || []).map((emp) => [emp.id, emp]));
+    const employeeList = Array.isArray(employees) ? employees : [];
+    const names = task.assigned_to.map((empId) => {
+      const emp = employeeList.find((e) => e.id === empId);
+      return emp
+        ? emp.username || emp.first_name || emp.email || `Employee ${empId}`
+        : `Employee ${empId}`;
+    });
 
-    return task.assigned_to
-      .map((empId) => {
-        const emp = employeeMap.get(empId);
-        return (
-          emp?.username || emp?.first_name || emp?.email || `User ${empId}`
-        );
-      })
-      .join(", ");
+    return names.join(", ") || "Not assigned";
   };
+
   // Get group name and its members
   const getGroupInfo = () => {
     if (!task.group) return "No group";
 
-    const group = taskGroups.find((g) => g.id === task.group);
-    if (!group) return `Group ${task.group}`;
+    const groupList = Array.isArray(taskGroups) ? taskGroups : [];
+    const group = groupList.find((g) => g.id === task.group);
 
-    const employeeMap = new Map(employees.map((emp) => [emp.id, emp]));
-
-    const memberNames = (group.members || []).map((id) => {
-      const emp = employeeMap.get(id);
-      return emp?.username || emp?.email || `User ${id}`;
-    });
-
-    return `${group.name} (${memberNames.join(", ") || "no members"})`;
+    return group ? group.name : `Group ${task.group}`;
   };
 
   return (
@@ -575,17 +567,32 @@ const ManagerTasks = () => {
   };
 
   // Fetch employees
+  // Fetch employees (FIXED – same as ManagerTaskGroups)
   const fetchEmployees = async () => {
     try {
+      console.log("🔍 Fetching employees from API...");
       const response = await fetchWithAuth(
         "http://127.0.0.1:8000/api/clients/employees/"
       );
-      if (response.ok) {
-        const data = await response.json();
-        setEmployees(Array.isArray(data) ? data : data.results || []);
+
+      if (!response.ok) {
+        console.error("❌ Failed to fetch employees");
+        setEmployees([]);
+        return;
+      }
+
+      const data = await response.json();
+      console.log("✅ Employee API response:", data);
+
+      // ✅ SAME LOGIC AS ManagerTaskGroups
+      if (Array.isArray(data.employees)) {
+        setEmployees(data.employees);
+      } else {
+        setEmployees([]);
       }
     } catch (error) {
-      console.error("Error fetching employees:", error);
+      console.error("💥 Error fetching employees:", error);
+      setEmployees([]);
     }
   };
 
@@ -718,13 +725,14 @@ const ManagerTasks = () => {
   };
 
   useEffect(() => {
-    console.log("Employees list:", employees);
-  }, [employees]);
+    const loadData = async () => {
+      // Fetch employees FIRST, then tasks
+      await fetchEmployees();
+      await fetchTaskGroups();
+      await fetchTasks();
+    };
 
-  useEffect(() => {
-    fetchEmployees();
-    fetchTaskGroups();
-    fetchTasks();
+    loadData();
   }, []);
 
   const filteredTasks = tasks.filter((task) => {
@@ -761,40 +769,7 @@ const ManagerTasks = () => {
       />
 
       <div className="bg-white rounded-lg shadow-sm">
-        <div className="flex justify-between items-center px-6 pt-6 pb-4">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab("All")}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === "All"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setActiveTab("Active")}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === "Active"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              Active
-            </button>
-            <button
-              onClick={() => setActiveTab("Overdue")}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                activeTab === "Overdue"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              Overdue
-            </button>
-          </div>
-
+        <div className="flex justify-end items-center px-6 pt-6 pb-4">
           <button
             onClick={() => setIsModalOpen(true)}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
