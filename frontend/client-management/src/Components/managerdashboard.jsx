@@ -8,7 +8,7 @@ const getAuthToken = () => localStorage.getItem("accessToken");
 const refreshAuthToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
   if (!refreshToken) {
-    window.location.href = "/login";
+    window.location.href = "/";
     return null;
   }
   try {
@@ -24,11 +24,11 @@ const refreshAuthToken = async () => {
     } else {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      window.location.href = "/login";
+      window.location.href = "/";
       return null;
     }
   } catch (error) {
-    window.location.href = "/login";
+    window.location.href = "/";
     return null;
   }
 };
@@ -93,7 +93,7 @@ const EmployeeTasksModal = ({ isOpen, onClose, employee, tasks }) => {
   );
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <div>

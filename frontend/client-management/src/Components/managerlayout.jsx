@@ -13,10 +13,10 @@ const ManagerLayout = () => {
     settings: "Manager Settings",
   };
 
-  // get last part of the URL
+
   const currentPath = location.pathname.split("/").pop();
 
-  // fallback title
+  
   const pageTitle = pageTitles[currentPath] || "Manager Dashboard";
 
   return (

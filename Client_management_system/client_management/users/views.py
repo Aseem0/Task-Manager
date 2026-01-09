@@ -25,11 +25,15 @@ class ProfileView(APIView):
 
     def get(self, request):
         user = request.user
+        role = user.role
+        if user.is_superuser:
+            role = 'admin'
+        
         return Response({
             "id": user.id,
             "username": user.username,
             "email": user.email,
-            "role": user.role,
+            "role": role,
             "avatar": user.avatar.url if user.avatar else None,
         })
 
@@ -38,13 +42,18 @@ class ProfileView(APIView):
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+            
+            role = user.role
+            if user.is_superuser:
+                role = 'admin'
+                
             return Response({
                 "message": "Profile updated successfully",
                 "user": {
                     "id": user.id,
                     "username": serializer.data.get('username', user.username),
                     "email": serializer.data.get('email', user.email),
-                    "role": user.role,
+                    "role": role,
                 }
             })
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

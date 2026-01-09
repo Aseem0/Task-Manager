@@ -1,162 +1,431 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
 
-const AnalyticsContent = () => {
-  const overviewStats = [
-    { value: '10', label: 'Total Projects', bgColor: 'bg-slate-300' },
-    { value: '10', label: 'Active Tasks', bgColor: 'bg-slate-300' },
-    { value: '10', label: 'Completed Tasks', bgColor: 'bg-slate-300' },
-    { value: '100', label: 'Hours Spend', bgColor: 'bg-slate-300' }
-  ]
+const API_BASE_URL = "http://127.0.0.1:8000/api";
+
+const getAuthToken = () => localStorage.getItem("accessToken");
+
+const refreshAuthToken = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) {
+    window.location.href = "/";
+    return null;
+  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/token/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh: refreshToken }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem("accessToken", data.access);
+      return data.access;
+    } else {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      window.location.href = "/";
+      return null;
+    }
+  } catch (error) {
+    window.location.href = "/";
+    return null;
+  }
+};
+
+const fetchWithAuth = async (url, options = {}) => {
+  const token = getAuthToken();
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (response.status === 401) {
+    const newToken = await refreshAuthToken();
+    if (newToken) {
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+          Authorization: `Bearer ${newToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+    }
+  }
+  return response;
+};
+
+// Stats Card Component
+const AnalyticsCard = ({ number, label, color }) => (
+  <div className={`${color} rounded-lg p-6 text-center`}>
+    <div className="text-4xl font-bold text-gray-800 mb-2">{number}</div>
+    <div className="text-sm text-gray-600 font-medium">{label}</div>
+  </div>
+);
+
+// Insight Alert Component
+const InsightAlert = ({ type, message }) => {
+  const getAlertStyles = () => {
+    switch (type) {
+      case "success":
+        return { bg: "bg-green-50", icon: "✓", iconBg: "bg-green-500" };
+      case "error":
+        return { bg: "bg-red-50", icon: "!", iconBg: "bg-red-500" };
+      case "warning":
+        return { bg: "bg-yellow-50", icon: "⚠", iconBg: "bg-yellow-500" };
+      default:
+        return { bg: "bg-gray-50", icon: "i", iconBg: "bg-gray-500" };
+    }
+  };
+
+  const styles = getAlertStyles();
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Analytics Overview Section */}
-      <div className="bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-400 rounded-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">Analytics Overview</h2>
-          <div className="flex items-center space-x-2">
-            <button className="px-4 py-2 bg-white rounded-md text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-              Today
-            </button>
-            <button className="px-4 py-2 bg-white rounded-md text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-              This Week
-            </button>
-            <button className="px-4 py-2 bg-white rounded-md text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-              This Month
-            </button>
-            <button className="p-2 bg-white rounded-md hover:bg-slate-50 transition-colors">
-              <svg className="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </button>
-          </div>
-        </div>
+    <div className={`${styles.bg} rounded-lg p-4 flex items-center gap-3`}>
+      <div
+        className={`${styles.iconBg} w-8 h-8 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0`}
+      >
+        {styles.icon}
+      </div>
+      <p className="text-gray-700 text-sm">{message}</p>
+    </div>
+  );
+};
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {overviewStats.map((stat, index) => (
-            <div key={index} className={`${stat.bgColor} p-6 rounded-lg text-center`}>
-              <h3 className="text-3xl font-bold text-slate-800 mb-2">{stat.value}</h3>
-              <p className="text-sm text-slate-600 font-medium">{stat.label}</p>
-            </div>
-          ))}
+// Main Analytics Component
+const AdminAnalytics = () => {
+  const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [employees, setEmployees] = useState([]);
+
+  // Fetch tasks
+  const fetchTasks = async () => {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/tasks/my-tasks/`);
+      if (response.ok) {
+        const data = await response.json();
+        let taskList = [];
+        if (Array.isArray(data)) {
+          taskList = data;
+        } else if (data.results && Array.isArray(data.results)) {
+          taskList = data.results;
+        } else if (data.tasks && Array.isArray(data.tasks)) {
+          taskList = data.tasks;
+        }
+        setTasks(taskList);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  // Fetch projects
+  const fetchProjects = async () => {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/tasks/groups/`);
+      if (response.ok) {
+        const data = await response.json();
+        const projectList = Array.isArray(data) ? data : data.results || [];
+        setProjects(projectList);
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
+
+  // Fetch employees
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetchWithAuth(`${API_BASE_URL}/users/employees/`);
+      if (response.ok) {
+        const data = await response.json();
+        const employeeList = Array.isArray(data)
+          ? data.filter((emp) => emp.role === "employee")
+          : [];
+        setEmployees(employeeList);
+      }
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchTasks(), fetchProjects(), fetchEmployees()]);
+      setLoading(false);
+    };
+    loadData();
+  }, []);
+
+  // Calculate statistics
+  const totalProjects = projects.length;
+  const totalTasks = tasks.length;
+  const todoTasks = tasks.filter((t) => t.status === "todo").length;
+  const inProgressTasks = tasks.filter((t) => t.status === "in_progress").length;
+  const completedTasks = tasks.filter((t) => t.status === "completed").length;
+  const assignedTasks = totalTasks; // All tasks are assigned
+
+  // Calculate completion percentage
+  const completionPercentage = totalTasks > 0 
+    ? Math.round((completedTasks / totalTasks) * 100) 
+    : 0;
+
+  // Calculate chart values (percentages of circumference, circumference = 2 * π * r ≈ 251 for r=40)
+  const circumference = 251;
+  const completedDash = totalTasks > 0 ? (completedTasks / totalTasks) * circumference : 0;
+  const assignedDash = totalTasks > 0 ? (todoTasks / totalTasks) * circumference : 0;
+  const inProgressDash = totalTasks > 0 ? (inProgressTasks / totalTasks) * circumference : 0;
+
+  // Generate dynamic insights
+  const generateInsights = () => {
+    const insights = [];
+    
+    if (completedTasks > 0 && completedTasks >= totalTasks / 2) {
+      insights.push({
+        type: "success",
+        message: `Great progress! ${completedTasks} out of ${totalTasks} tasks are completed.`
+      });
+    }
+    
+    if (inProgressTasks > 0) {
+      insights.push({
+        type: "warning",
+        message: `${inProgressTasks} tasks are currently in progress.`
+      });
+    }
+    
+    if (todoTasks > 0) {
+      insights.push({
+        type: "error",
+        message: `${todoTasks} tasks are still pending (To Do).`
+      });
+    }
+    
+    if (completionPercentage < 50 && totalTasks > 0) {
+      insights.push({
+        type: "warning",
+        message: "Task completion rate is below 50%. Consider prioritizing pending tasks."
+      });
+    }
+    
+    if (completionPercentage >= 80) {
+      insights.push({
+        type: "success",
+        message: "Excellent! Task completion rate is above 80%!"
+      });
+    }
+
+    if (totalTasks === 0) {
+      insights.push({
+        type: "warning",
+        message: "No tasks found. Start by creating some tasks for your team."
+      });
+    }
+
+    return insights.slice(0, 3); // Limit to 3 insights
+  };
+
+  const insights = generateInsights();
+
+  return (
+    <div className="p-6 bg-gray-100 min-h-screen">
+      {/* Analytics Overview Header */}
+      <div className="bg-gray-200 rounded-lg p-6 mb-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Analytics Overview
+          </h1>
+          {loading && (
+            <span className="text-sm text-gray-500">Loading...</span>
+          )}
         </div>
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <AnalyticsCard 
+          number={loading ? "..." : totalProjects} 
+          label="Total Projects" 
+          color="bg-purple-100"
+        />
+        <AnalyticsCard 
+          number={loading ? "..." : assignedTasks} 
+          label="Assigned Tasks" 
+          color="bg-blue-100"
+        />
+        <AnalyticsCard 
+          number={loading ? "..." : completedTasks} 
+          label="Completed Tasks" 
+          color="bg-green-100"
+        />
+      </div>
+
       {/* Insights Section */}
-      <div className="bg-slate-200 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">Insights</h2>
-        
+      <div className="bg-gray-200 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Insights</h2>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Task Status Chart */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6 text-center">Task Status</h3>
-            
-            <div className="flex justify-center items-center mb-6">
+          <div className="bg-white rounded-lg p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-6 text-center">
+              Task Status
+            </h3>
+
+            <div className="flex items-center justify-center mb-6">
               <div className="relative w-64 h-64">
-                <svg viewBox="0 0 200 200" className="transform -rotate-90">
-                  {/* Completed Task - Blue (70%) */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="70"
-                    fill="none"
-                    stroke="#3b82f6"
-                    strokeWidth="60"
-                    strokeDasharray="308 439.6"
-                  />
-                  {/* Active Task - Orange (20%) */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="70"
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth="60"
-                    strokeDasharray="88 439.6"
-                    strokeDashoffset="-308"
-                  />
-                  {/* Overdue Task - Red (10%) */}
-                  <circle
-                    cx="100"
-                    cy="100"
-                    r="70"
-                    fill="none"
-                    stroke="#ef4444"
-                    strokeWidth="60"
-                    strokeDasharray="44 439.6"
-                    strokeDashoffset="-396"
-                  />
-                </svg>
+                {/* Donut Chart */}
+                {totalTasks > 0 ? (
+                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
+                    {/* Blue - Completed Task */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#3B82F6"
+                      strokeWidth="20"
+                      strokeDasharray={`${completedDash} ${circumference}`}
+                    />
+                    {/* Orange - Assigned/Todo Task */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#F59E0B"
+                      strokeWidth="20"
+                      strokeDasharray={`${assignedDash} ${circumference}`}
+                      strokeDashoffset={`-${completedDash}`}
+                    />
+                    {/* Red - In Progress Task */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#EF4444"
+                      strokeWidth="20"
+                      strokeDasharray={`${inProgressDash} ${circumference}`}
+                      strokeDashoffset={`-${completedDash + assignedDash}`}
+                    />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="none"
+                      stroke="#E5E7EB"
+                      strokeWidth="20"
+                    />
+                  </svg>
+                )}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-28 h-28 bg-white rounded-full"></div>
+                  <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center">
+                    <span className="text-3xl font-bold text-gray-700">{totalTasks}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Legend */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Completed Task</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">Completed Task</span>
                 </div>
+                <span className="text-sm font-semibold text-gray-700">{completedTasks}</span>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Active Task</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-orange-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">To Do Task</span>
                 </div>
+                <span className="text-sm font-semibold text-gray-700">{todoTasks}</span>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <span className="text-sm text-slate-700">Overdue Task</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                  <span className="text-sm text-gray-700">In Progress Task</span>
                 </div>
+                <span className="text-sm font-semibold text-gray-700">{inProgressTasks}</span>
               </div>
             </div>
           </div>
 
-          {/* Completion Stats */}
-          <div className="bg-white rounded-lg p-6 shadow-sm space-y-6">
-            <div>
-              <div className="flex items-baseline space-x-2 mb-3">
-                <span className="text-4xl font-bold text-slate-800">10</span>
-                <span className="text-lg text-slate-600">% Completed</span>
+          {/* Completion Rate & Alerts */}
+          <div className="space-y-6">
+            {/* Completion Percentage */}
+            <div className="bg-white rounded-lg p-6">
+              <div className="mb-4">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-4xl font-bold text-gray-800">
+                    {loading ? "..." : completionPercentage}
+                  </span>
+                  <span className="text-xl text-gray-600">% Completed</span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {completedTasks}/{totalTasks} Tasks
+                </p>
               </div>
-              <p className="text-sm text-slate-500 mb-3">1/10 Task</p>
-              <div className="w-full bg-slate-200 rounded-full h-3">
-                <div className="bg-blue-600 h-3 rounded-full" style={{ width: '10%' }}></div>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${completionPercentage}%` }}
+                ></div>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <span className="text-sm text-slate-700">Most tasks are currently active.</span>
-              </div>
+            {/* Insight Alerts */}
+            <div className="space-y-4">
+              {insights.length > 0 ? (
+                insights.map((insight, index) => (
+                  <InsightAlert
+                    key={index}
+                    type={insight.type}
+                    message={insight.message}
+                  />
+                ))
+              ) : (
+                <InsightAlert
+                  type="success"
+                  message="All systems running smoothly!"
+                />
+              )}
+            </div>
 
-              <div className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
-                <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white text-xs font-bold">!</span>
+            {/* Team Overview */}
+            <div className="bg-white rounded-lg p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Team Overview</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {loading ? "..." : employees.length}
+                  </div>
+                  <div className="text-xs text-gray-500">Total Employees</div>
                 </div>
-                <span className="text-sm text-slate-700">9 Tasks are overdue.</span>
-              </div>
-
-              <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
-                <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white text-lg font-bold">⚠</span>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    {loading ? "..." : totalProjects}
+                  </div>
+                  <div className="text-xs text-gray-500">Active Projects</div>
                 </div>
-                <span className="text-sm text-slate-700">Tasks completion rate is low.</span>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AnalyticsContent
+export default AdminAnalytics;

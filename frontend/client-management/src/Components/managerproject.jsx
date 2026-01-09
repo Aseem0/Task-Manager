@@ -14,7 +14,7 @@ const refreshAuthToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
 
   if (!refreshToken) {
-    window.location.href = "/login";
+    window.location.href = "/";
     return null;
   }
 
@@ -36,12 +36,12 @@ const refreshAuthToken = async () => {
       // Refresh token is also expired, redirect to login
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      window.location.href = "/login";
+      window.location.href = "/";
       return null;
     }
   } catch (error) {
     console.error("Error refreshing token:", error);
-    window.location.href = "/login";
+    window.location.href = "/";
     return null;
   }
 };
@@ -124,7 +124,7 @@ const TaskGroupModal = ({
   const employeeList = Array.isArray(employees) ? employees : [];
 
   return (
-    <div className="fixed inset-0  flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">
@@ -150,7 +150,7 @@ const TaskGroupModal = ({
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Development Team"
+              placeholder="Enter group name"
             />
           </div>
 

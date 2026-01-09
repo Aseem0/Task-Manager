@@ -13,6 +13,12 @@ const LogIn = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Clear fields on mount to ensure they are empty after logout
+  React.useEffect(() => {
+    setUsername("");
+    setPassword("");
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -91,21 +97,25 @@ const LogIn = () => {
             </div>
           )}
 
-          <form className="space-y-6" onSubmit={handleLogin}>
+          <form className="space-y-6" onSubmit={handleLogin} autoComplete="off">
             <input
               type="text"
+              name="username"
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="off"
               className="w-full px-6 py-4 bg-blue-50 rounded-xl text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
             />
             <input
               type="password"
+              name="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="new-password"
               className="w-full px-6 py-4 bg-blue-50 rounded-xl text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
             />
 

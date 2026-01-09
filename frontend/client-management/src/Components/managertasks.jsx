@@ -17,7 +17,7 @@ const getAuthToken = () => localStorage.getItem("accessToken");
 const refreshAuthToken = async () => {
   const refreshToken = localStorage.getItem("refreshToken");
   if (!refreshToken) {
-    window.location.href = "/login";
+    window.location.href = "/";
     return null;
   }
   try {
@@ -36,11 +36,11 @@ const refreshAuthToken = async () => {
     } else {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      window.location.href = "/login";
+      window.location.href = "/";
       return null;
     }
   } catch (error) {
-    window.location.href = "/login";
+    window.location.href = "/";
     return null;
   }
 };
@@ -131,7 +131,7 @@ const EditTaskModal = ({
   const groupList = Array.isArray(taskGroups) ? taskGroups : [];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">Edit Task</h2>
@@ -352,7 +352,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, employees, taskGroups }) => {
   const groupList = Array.isArray(taskGroups) ? taskGroups : [];
 
   return (
-    <div className="fixed inset-0  flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">Add New Task</h2>
@@ -378,7 +378,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, employees, taskGroups }) => {
                   setFormData((prev) => ({ ...prev, title: e.target.value }))
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., API Integration"
+                placeholder="Enter task title"
               />
             </div>
 
@@ -397,7 +397,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, employees, taskGroups }) => {
                 }
                 rows="3"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Describe the task..."
+                placeholder="Enter task description"
               />
             </div>
 

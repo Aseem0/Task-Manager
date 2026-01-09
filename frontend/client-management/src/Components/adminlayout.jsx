@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import AdminNotification from './adminnotification.jsx'
+import { NavLink, Outlet } from 'react-router-dom'
 
 const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
@@ -16,29 +17,84 @@ const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
   return (
     <div className="flex min-h-screen bg-slate-100">
       {/* Sidebar */}
-      <div className="bg-slate-900 text-white w-64 min-h-screen p-6 flex flex-col">
-        <div className="mb-10">
-          <h1 className="text-2xl font-bold">ClientX</h1>
+      <div className="bg-slate-800 text-white w-64 min-h-screen p-4">
+        <div className="mb-8">
+          <h1 className="text-xl font-bold">ClientX</h1>
         </div>
-        
-        <nav className="flex-1">
-          <ul className="space-y-1">
-            {menuItems.map((item, index) => (
-              <li key={index}>
-                <button
-                  onClick={() => setActiveTab(item.name)}
-                  className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                    item.name === activeTab
-                      ? 'bg-slate-800 text-white' 
-                      : 'text-gray-400 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <span className="text-lg">{item.icon}</span>
-                  <span>{item.name}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+
+        <nav className="space-y-2">
+          <NavLink
+            to="dashboard"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Dashboard
+          </NavLink>
+          <NavLink
+            to="analytics"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Analytics
+          </NavLink>
+          <NavLink
+            to="project"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Project
+          </NavLink>
+          <NavLink
+            to="tasks"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Tasks
+          </NavLink>
+          <NavLink
+            to="clients"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Clients
+          </NavLink>
+          <NavLink
+            to="settings"
+            className={({ isActive }) =>
+              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
+              }`
+            }
+          >
+            Settings
+          </NavLink>
         </nav>
       </div>
 
@@ -81,7 +137,7 @@ const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto bg-slate-100">
-          {children}
+          <Outlet />
         </main>
 
         {/* Footer */}

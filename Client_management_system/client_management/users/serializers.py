@@ -66,12 +66,16 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Default token validation
         data = super().validate(attrs)
 
+        role = getattr(self.user, "role", "employee")
+        if self.user.is_superuser:
+            role = 'admin'
+
         # Add extra user info to response
         data['user'] = {
             "id": self.user.id,
             "username": self.user.username,
             "email": self.user.email,
-            "role": getattr(self.user, "role", "employee"),  # default to employee
+            "role": role,
             "is_superuser": self.user.is_superuser,
         }
         return data

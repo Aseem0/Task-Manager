@@ -8,6 +8,12 @@ from .serializers import TaskSerializer, TaskGroupSerializer
 from users.permissions import IsAdminOrManager
 from rest_framework.permissions import IsAuthenticated
 
+
+def is_admin_or_manager(user):
+    """Helper function to check if user is admin, manager or superuser"""
+    return user.is_superuser or user.role in ['admin', 'manager']
+
+
 class TaskGroupViewSet(viewsets.ModelViewSet):
     queryset = TaskGroup.objects.all()
     serializer_class = TaskGroupSerializer
@@ -15,6 +21,7 @@ class TaskGroupViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
 
 class TaskCreateView(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrManager]
@@ -46,13 +53,15 @@ class TaskCreateView(APIView):
             status=status.HTTP_201_CREATED
         )
 
+
 class TaskListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
 
-        if user.role in ['admin', 'manager']:
+        # Admin, manager, and superusers can see all tasks
+        if is_admin_or_manager(user):
             tasks = Task.objects.prefetch_related('assigned_to').all()
         else:
             tasks = Task.objects.prefetch_related('assigned_to').filter(
@@ -61,19 +70,22 @@ class TaskListView(APIView):
 
         return Response(TaskSerializer(tasks, many=True).data)
 
+
 class TaskDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         task = get_object_or_404(Task, pk=pk)
 
-        if request.user.role == 'employee' and request.user not in task.assigned_to.all():
+        # Only employees need to be assigned to view a task
+        if not is_admin_or_manager(request.user) and request.user not in task.assigned_to.all():
             return Response(
                 {"error": "Task not assigned to you"},
                 status=status.HTTP_403_FORBIDDEN
             )
 
         return Response(TaskSerializer(task).data)
+
 
 class TaskUpdateDeleteView(APIView):
     permission_classes = [IsAuthenticated]
@@ -85,7 +97,8 @@ class TaskUpdateDeleteView(APIView):
         task = self.get_task(pk)
         user = request.user
 
-        if user.role == 'employee':
+        # Employees can only update status of their assigned tasks
+        if not is_admin_or_manager(user):
             if user not in task.assigned_to.all():
                 return Response({"error": "Not allowed"}, status=403)
 
@@ -93,6 +106,7 @@ class TaskUpdateDeleteView(APIView):
             task.save()
             return Response(TaskSerializer(task).data)
 
+        # Admin/Manager can update everything
         serializer = TaskSerializer(task, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
@@ -112,7 +126,8 @@ class TaskUpdateDeleteView(APIView):
     def delete(self, request, pk):
         task = self.get_task(pk)
 
-        if request.user.role == 'employee':
+        # Only admin/manager/superuser can delete tasks
+        if not is_admin_or_manager(request.user):
             return Response(
                 {"error": "Employees cannot delete tasks"},
                 status=status.HTTP_403_FORBIDDEN

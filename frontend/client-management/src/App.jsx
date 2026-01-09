@@ -2,8 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import "./App.css";
 import SignUp from "./pages/SignUp";
 import LogIn from "./pages/LogIn";
-import Admin from "./pages/admin";
-import Manager from "./pages/manager";
+
 
 import ManagerLayout from "./Components/managerlayout";
 import ManagerDashboard from "./Components/managerdashboard";
@@ -18,14 +17,34 @@ import EmployeeDashboard from "./Components/employeeDashboard";
 import EmployeeTasks from "./Components/employeetasks";
 import EmployeeSettings from "./Components/employeesettings";
 import EmployeeEditProfile from "./Components/employeeeditprofile";
+import AdminLayout from "./Components/adminlayout";
+import AdminDashboard from "./Components/admindashboard";
+import AdminAnalytics from "./Components/adminanalytics";
+import AdminProject from "./Components/adminprojects";
+import AdminTasks from "./Components/admintasks";
+import AdminClients from "./Components/adminclients";
+import AdminSettings from "./Components/adminsettings";
+import AdminEditProfile from "./Components/admineditprofile";
 
 function App() {
   return (
     <>
       <Routes>
-        <Route path="/admin" element={<Admin />} />
+        
         <Route path="/signup" element={<SignUp />} />
         <Route path="/" element={<LogIn />} />
+
+        {/* MANAGER ROUTES */}
+        <Route path="/admin" element={<AdminLayout />} >
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="project" element={<AdminProject />} />
+          <Route path="tasks" element={<AdminTasks />} />
+          <Route path="clients" element={<AdminClients />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="editprofile" element={<AdminEditProfile />} />
+        </Route>
         {/* MANAGER ROUTES */}
         <Route path="/manager" element={<ManagerLayout />}>
           <Route index element={<ManagerDashboard />} />
