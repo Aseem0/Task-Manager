@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useState } from 'react'
+import AdminNotification from './adminnotification.jsx'
 
 const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
     { name: 'Analytics', icon: '📈' },
@@ -44,7 +47,7 @@ const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
         {/* Header */}
         <header className="bg-slate-900 text-white p-4 flex justify-between items-center shadow-md">
           <div>
-            <h2 className="text-l font-semibold">Welcome!</h2>
+            <h2 className="text-xl font-semibold">ClientX</h2>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -57,7 +60,10 @@ const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
             </div>
             
             <div className="flex items-center space-x-3">
-              <button className="p-2 hover:bg-slate-800 rounded-md transition-colors">
+              <button 
+                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                className="p-2 hover:bg-slate-800 rounded-md transition-colors relative"
+              >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" clipRule="evenodd" />
                 </svg>
@@ -69,6 +75,9 @@ const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
             </div>
           </div>
         </header>
+
+        {/* Notification Dropdown */}
+        <AdminNotification isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto bg-slate-100">
@@ -114,11 +123,11 @@ const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
                 <ul className="space-y-2 text-blue-200 text-sm">
                   <li className="flex items-center space-x-2">
                     <span>📧</span>
-                    <span>clientx123@gmail.com</span>
+                    <span>Client12320@Gmail.Com</span>
                   </li>
                   <li className="flex items-center space-x-2">
                     <span>📞</span>
-                    <span>+977 9843567890</span>
+                    <span>977-9843567890</span>
                   </li>
                   <li className="flex items-center space-x-2">
                     <span>📍</span>
@@ -129,7 +138,7 @@ const AdminLayout = ({ children, activeTab = 'Dashboard', setActiveTab }) => {
             </div>
             
             <div className="border-t border-blue-800 pt-4 flex flex-col md:flex-row justify-between items-center text-sm text-blue-200">
-              <p className="mb-2 md:mb-0">© clientx.com</p>
+              <p className="mb-2 md:mb-0">© https://copyright.com</p>
               <div className="flex space-x-4">
                 <a href="#" className="hover:text-white transition-colors">Terms of Use</a>
                 <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
