@@ -298,6 +298,19 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, employees, taskGroups }) => {
     due_date: "",
   });
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        title: "",
+        description: "",
+        assigned_to: [],
+        group: "",
+        due_date: "",
+      });
+    }
+  }, [isOpen]);
+
   const handleSubmit = () => {
     if (formData.title.trim()) {
       // Validate: must have either assigned_to or group
@@ -339,7 +352,7 @@ const AddTaskModal = ({ isOpen, onClose, onSubmit, employees, taskGroups }) => {
   const groupList = Array.isArray(taskGroups) ? taskGroups : [];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0  flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">Add New Task</h2>
@@ -764,7 +777,7 @@ const ManagerTasks = () => {
         }}
         onSubmit={handleEditTask}
         task={editingTask}
-        employees={employees}
+        employees={employees} 
         taskGroups={taskGroups}
       />
 

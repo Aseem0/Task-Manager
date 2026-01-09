@@ -12,8 +12,12 @@ import ManagerProject from "./Components/managerproject";
 import ManagerTasks from "./Components/managertasks";
 import ManagerEmployees from "./Components/manageremployees";
 import ManagerSettings from "./Components/managersettings";
+import ManagerEditProfile from "./Components/managereditprofile";
 import EmployeeLayout from "./Components/employeelayout";
 import EmployeeDashboard from "./Components/employeeDashboard";
+import EmployeeTasks from "./Components/employeetasks";
+import EmployeeSettings from "./Components/employeesettings";
+import EmployeeEditProfile from "./Components/employeeeditprofile";
 
 function App() {
   return (
@@ -21,7 +25,7 @@ function App() {
       <Routes>
         <Route path="/admin" element={<Admin />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/login" element={<LogIn />} />
+        <Route path="/" element={<LogIn />} />
         {/* MANAGER ROUTES */}
         <Route path="/manager" element={<ManagerLayout />}>
           <Route index element={<ManagerDashboard />} />
@@ -31,11 +35,15 @@ function App() {
           <Route path="tasks" element={<ManagerTasks />} />
           <Route path="employees" element={<ManagerEmployees />} />
           <Route path="settings" element={<ManagerSettings />} />
+          <Route path="editprofile" element={<ManagerEditProfile />} />
         </Route>
         {/* EMPLOYEE ROUTES */}
         <Route path="/employee" element={<EmployeeLayout />}>
           <Route index element={<EmployeeDashboard />} />
           <Route path="dashboard" element={<EmployeeDashboard />} />
+          <Route path="tasks" element={<EmployeeTasks />} />
+          <Route path="settings" element={<EmployeeSettings />} />
+          <Route path="editprofile" element={<EmployeeEditProfile />} />
         </Route>
       </Routes>
     </>

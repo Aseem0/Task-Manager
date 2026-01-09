@@ -29,16 +29,26 @@ class TaskSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
+    group_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
         fields = [
             'id', 'title', 'description',
-            'assigned_to', 'group',
+            'assigned_to', 'group', 'group_details',
             'status', 'due_date',
             'created_by', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+    def get_group_details(self, obj):
+        if obj.group:
+            return {
+                'id': obj.group.id,
+                'name': obj.group.name,
+                'member_count': obj.group.members.count()
+            }
+        return None
 
     def validate(self, data):
         assigned_to = data.get('assigned_to')

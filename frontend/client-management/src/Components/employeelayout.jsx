@@ -5,12 +5,9 @@ const EmployeeLayout = () => {
   const location = useLocation();
 
   const pageTitles = {
-    dashboard: "Manager Dashboard",
-    analytics: "Manager Analytics",
-    project: "Manager Projects",
-    tasks: "Manager Tasks",
-    employees: "Manager Employees",
-    settings: "Manager Settings",
+    dashboard: "Dashboard",
+    tasks: "Tasks",
+    settings: "Settings",
   };
 
   // get last part of the URL
@@ -41,30 +38,6 @@ const EmployeeLayout = () => {
             Dashboard
           </NavLink>
           <NavLink
-            to="analytics"
-            className={({ isActive }) =>
-              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
-                isActive
-                  ? "bg-slate-700 text-white"
-                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
-              }`
-            }
-          >
-            Analytics
-          </NavLink>
-          <NavLink
-            to="project"
-            className={({ isActive }) =>
-              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
-                isActive
-                  ? "bg-slate-700 text-white"
-                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
-              }`
-            }
-          >
-            Project
-          </NavLink>
-          <NavLink
             to="tasks"
             className={({ isActive }) =>
               `block items-center space-x-3 p-3 rounded-lg transition-colors ${
@@ -75,18 +48,6 @@ const EmployeeLayout = () => {
             }
           >
             Tasks
-          </NavLink>
-          <NavLink
-            to="employees"
-            className={({ isActive }) =>
-              `block items-center space-x-3 p-3 rounded-lg transition-colors ${
-                isActive
-                  ? "bg-slate-700 text-white"
-                  : "text-gray-300 hover:bg-slate-700 hover:text-white"
-              }`
-            }
-          >
-            Employees
           </NavLink>
           <NavLink
             to="settings"

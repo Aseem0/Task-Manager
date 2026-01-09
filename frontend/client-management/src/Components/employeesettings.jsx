@@ -65,7 +65,7 @@ const SettingsPage = () => {
   };
 
   const handleEditProfile = () => {
-    navigate('/manager/editprofile');
+    navigate('/employee/editprofile');
   };
 
   // Capitalize first letter of role

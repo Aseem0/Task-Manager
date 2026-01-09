@@ -60,6 +60,7 @@ export default function ManagerEmployees() {
     email: "",
     password: "",
     role: "employee",
+    position: "",
   });
 
   // Function to open modal with fresh/empty form
@@ -69,6 +70,7 @@ export default function ManagerEmployees() {
       email: "",
       password: "",
       role: "employee",
+      position: "",
     });
     setEditingEmployee(null);
     setError("");
@@ -83,6 +85,7 @@ export default function ManagerEmployees() {
       email: employee.email,
       password: "",
       role: employee.role,
+      position: employee.position || "",
     });
     setEditingEmployee(employee);
     setError("");
@@ -178,6 +181,7 @@ export default function ManagerEmployees() {
           username: formData.username,
           email: formData.email,
           role: formData.role,
+          position: formData.position,
         };
         
         // Only include password if it was provided
@@ -198,6 +202,7 @@ export default function ManagerEmployees() {
             email: "",
             password: "",
             role: "employee",
+            position: "",
           });
           setEditingEmployee(null);
           setIsModalOpen(false);
@@ -224,6 +229,7 @@ export default function ManagerEmployees() {
           email: formData.email,
           password: formData.password,
           role: formData.role,
+          position: formData.position,
         });
 
         if (response.message && response.message.includes("successfully")) {
@@ -235,6 +241,7 @@ export default function ManagerEmployees() {
             email: "",
             password: "",
             role: "employee",
+            position: "",
           });
           setIsModalOpen(false);
           // Refresh the employee list
@@ -319,7 +326,7 @@ export default function ManagerEmployees() {
                     Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Role
+                    Position
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                     Actions
@@ -343,14 +350,8 @@ export default function ManagerEmployees() {
                         {employee.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          employee.role === 'admin' 
-                            ? 'bg-purple-100 text-purple-800' 
-                            : employee.role === 'manager' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {employee.role}
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                          {employee.position || 'Not Set'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -474,16 +475,21 @@ export default function ManagerEmployees() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
+                  Position
                 </label>
                 <select
-                  name="emp_role"
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  name="emp_position"
+                  value={formData.position}
+                  onChange={(e) => setFormData({...formData, position: e.target.value})}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   disabled={isLoading}
                 >
-                  <option value="employee">Employee</option>
+                  <option value="">Select Position</option>
+                  <option value="Frontend Developer">Frontend Developer</option>
+                  <option value="Backend Developer">Backend Developer</option>
+                  <option value="QA Engineer">QA Engineer</option>
+                  <option value="UI/UX Designer">UI/UX Designer</option>
+                  <option value="DevOps Engineer">DevOps Engineer</option>
                 </select>
               </div>
 
